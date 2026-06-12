@@ -1,0 +1,12 @@
+flask
+flask-login
+flask-sqlalchemy
+bcrypt
+python-dotenv
+anthropic
+scapy
+requests
+reportlab
+torch
+scikit-learn
+xgboost
