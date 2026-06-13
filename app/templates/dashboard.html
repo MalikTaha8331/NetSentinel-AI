@@ -2,19 +2,908 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetSentinel AI — Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0e1a; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        h1 { color: #2e75b6; } p { color: #888; margin-top: 10px; }
-        a { color: #2e75b6; }
+
+        body {
+            background: #070b14;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0;
+            width: 240px;
+            height: 100vh;
+            background: #0d1117;
+            border-right: 1px solid #1f3a5f;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 0 24px 32px;
+            border-bottom: 1px solid #1f3a5f;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            color: #2e86de;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .logo p {
+            font-size: 11px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .nav {
+            padding: 24px 0;
+            flex: 1;
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav a:hover, .nav a.active {
+            color: #2e86de;
+            background: #0f1e30;
+            border-left-color: #2e86de;
+        }
+
+        .nav a span { font-size: 18px; }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #1f3a5f;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .sidebar-footer a {
+            color: #e74c3c;
+            text-decoration: none;
+        }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: 240px;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .page-header p {
+            font-size: 13px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        /* ── STATS CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #0d1117;
+            border: 1px solid #1f3a5f;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+        }
+
+        .stat-card.blue::before { background: #2e86de; }
+        .stat-card.red::before { background: #e74c3c; }
+        .stat-card.yellow::before { background: #f39c12; }
+        .stat-card.green::before { background: #27ae60; }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-card .icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 36px;
+            opacity: 0.15;
+        }
+
+        /* ── SCAN PANEL ── */
+        .scan-panel {
+            background: #0d1117;
+            border: 1px solid #1f3a5f;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .scan-panel h3 {
+            font-size: 16px;
+            color: #2e86de;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scan-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input, .form-group select {
+            background: #070b14;
+            border: 1px solid #1f3a5f;
+            border-radius: 8px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input { width: 280px; }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #2e86de;
+        }
+
+        .btn-scan {
+            background: #2e86de;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-scan:hover { background: #1a6fc4; }
+        .btn-scan:disabled { background: #1f3a5f; cursor: not-allowed; }
+
+        /* ── PROGRESS ── */
+        .progress-bar {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .progress-bar.active { display: block; }
+
+        .progress-track {
+            background: #070b14;
+            border-radius: 4px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2e86de, #1abc9c);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+            animation: pulse-bar 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-bar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        /* ── RESULTS ── */
+        .results-section { display: none; }
+        .results-section.active { display: block; }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .results-header h3 {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .risk-badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .risk-Critical { background: #3d0f0f; color: #e74c3c; border: 1px solid #e74c3c; }
+        .risk-High { background: #3d220f; color: #f39c12; border: 1px solid #f39c12; }
+        .risk-Medium { background: #2d2d0f; color: #f1c40f; border: 1px solid #f1c40f; }
+        .risk-Low { background: #0f2d1a; color: #27ae60; border: 1px solid #27ae60; }
+        .risk-Pending { background: #1a1a2d; color: #888; border: 1px solid #888; }
+
+        .ports-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .port-card {
+            background: #070b14;
+            border: 1px solid #1f3a5f;
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: 80px 120px 1fr auto;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .port-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2e86de;
+        }
+
+        .port-service {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .port-service strong {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .port-banner {
+            font-size: 12px;
+            color: #555;
+            font-family: monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .port-cves {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        .cve-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .cve-Critical { background: #3d0f0f; color: #e74c3c; }
+        .cve-High { background: #3d220f; color: #f39c12; }
+        .cve-Medium { background: #2d2d0f; color: #f1c40f; }
+        .cve-Low { background: #0f2d1a; color: #27ae60; }
+
+        /* ── AI ANALYSIS ── */
+        .ai-panel {
+            background: #0d1117;
+            border: 1px solid #1f3a5f;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .ai-panel h3 {
+            font-size: 16px;
+            color: #2e86de;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .ai-block {
+            background: #070b14;
+            border: 1px solid #1f3a5f;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .ai-block h4 {
+            font-size: 12px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .ai-block p, .ai-block li {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .ai-block ul { padding-left: 16px; }
+        .ai-block li { margin-bottom: 4px; }
+
+        .ai-summary-full {
+            grid-column: 1 / -1;
+        }
+
+        /* ── CHAT ── */
+        .chat-panel {
+            background: #0d1117;
+            border: 1px solid #1f3a5f;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chat-panel h3 {
+            font-size: 16px;
+            color: #2e86de;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-messages {
+            background: #070b14;
+            border: 1px solid #1f3a5f;
+            border-radius: 8px;
+            padding: 16px;
+            height: 220px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-msg {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .chat-msg .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .chat-msg.user .avatar { background: #1f3a5f; }
+        .chat-msg.ai .avatar { background: #1a3a2a; }
+
+        .chat-msg .text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.5;
+            background: #0d1117;
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 85%;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            background: #070b14;
+            border: 1px solid #1f3a5f;
+            border-radius: 8px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .chat-input-row input:focus { border-color: #2e86de; }
+
+        .btn-send {
+            background: #2e86de;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-send:hover { background: #1a6fc4; }
+
+        /* ── HISTORY TABLE ── */
+        .history-panel {
+            background: #0d1117;
+            border: 1px solid #1f3a5f;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .history-panel h3 {
+            font-size: 16px;
+            color: #2e86de;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 11px;
+            border-bottom: 1px solid #1f3a5f;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #0f1e30;
+            color: #ccc;
+        }
+
+        tr:hover td { background: #0f1e30; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid #1f3a5f;
+            border-top-color: #2e86de;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-<div style="text-align:center">
-    <h1>⚡ NetSentinel AI</h1>
-    <p>Dashboard coming on Day 11. Auth system working!</p>
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="logo">
+        <h1>⚡ NetSentinel</h1>
+        <p>AI-Powered Security Scanner</p>
+    </div>
+    <nav class="nav">
+        <a href="#" class="active"><span>🏠</span> Dashboard</a>
+        <a href="#history"><span>📋</span> Scan History</a>
+        <a href="#"><span>🧠</span> AI Analysis</a>
+        <a href="#"><span>📄</span> Reports</a>
+    </nav>
+    <div class="sidebar-footer">
+        Logged in as <strong>{{ current_user.username }}</strong><br>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+    </div>
 </div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div>
+            <h2>Security Dashboard</h2>
+            <p>AI-powered port scanning & zero-day threat detection</p>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="label">Total Scans</div>
+            <div class="value">{{ scans|length }}</div>
+            <div class="icon">🔍</div>
+        </div>
+        <div class="stat-card red">
+            <div class="label">Critical Hosts</div>
+            <div class="value">{{ scans|selectattr('risk_score', 'equalto', 'Critical')|list|length }}</div>
+            <div class="icon">🚨</div>
+        </div>
+        <div class="stat-card yellow">
+            <div class="label">High Risk</div>
+            <div class="value">{{ scans|selectattr('risk_score', 'equalto', 'High')|list|length }}</div>
+            <div class="icon">⚠️</div>
+        </div>
+        <div class="stat-card green">
+            <div class="label">Clean Hosts</div>
+            <div class="value">{{ scans|selectattr('risk_score', 'equalto', 'Low')|list|length }}</div>
+            <div class="icon">✅</div>
+        </div>
+    </div>
+
+    <!-- SCAN PANEL -->
+    <div class="scan-panel">
+        <h3>🎯 New Scan</h3>
+        <div class="scan-form">
+            <div class="form-group">
+                <label>Target Host / IP</label>
+                <input type="text" id="targetHost" placeholder="e.g. scanme.nmap.org or 192.168.1.1">
+            </div>
+            <div class="form-group">
+                <label>Scan Profile</label>
+                <select id="scanProfile">
+                    <option value="quick">Quick (Common Ports)</option>
+                    <option value="standard">Standard (1-1024)</option>
+                    <option value="full">Full (1-65535)</option>
+                </select>
+            </div>
+            <button class="btn-scan" id="scanBtn" onclick="startScan()">
+                🚀 Start Scan
+            </button>
+        </div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-label" id="progressLabel">Initializing scan...</div>
+        </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-section" id="resultsSection">
+
+        <div class="results-header">
+            <h3 id="resultsTitle">Scan Results</h3>
+            <span class="risk-badge" id="riskBadge">—</span>
+        </div>
+
+        <div class="ports-grid" id="portsGrid"></div>
+
+        <!-- AI ANALYSIS -->
+        <div class="ai-panel" id="aiPanel" style="display:none">
+            <h3>🤖 AI Threat Analysis</h3>
+            <div class="ai-grid" id="aiGrid"></div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="chat-panel" id="chatPanel" style="display:none">
+            <h3>💬 Ask AI About This Scan</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg ai">
+                    <div class="avatar">🤖</div>
+                    <div class="text">Hi! I've analyzed this scan. Ask me anything about the vulnerabilities, attack vectors, or how to fix them.</div>
+                </div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="e.g. Which vulnerability is most dangerous?" onkeydown="if(event.key==='Enter') sendChat()">
+                <button class="btn-send" onclick="sendChat()">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- HISTORY -->
+    <div class="history-panel" id="history">
+        <h3>📋 Recent Scans</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Host</th>
+                    <th>IP</th>
+                    <th>Profile</th>
+                    <th>Open Ports</th>
+                    <th>Risk</th>
+                    <th>Duration</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in scans %}
+                <tr>
+                    <td>{{ scan.id }}</td>
+                    <td>{{ scan.hostname }}</td>
+                    <td>{{ scan.ip }}</td>
+                    <td>{{ scan.profile }}</td>
+                    <td>{{ scan.open_count }}</td>
+                    <td><span class="risk-badge risk-{{ scan.risk_score }}">{{ scan.risk_score }}</span></td>
+                    <td>{{ scan.duration }}s</td>
+                    <td>{{ scan.scan_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align:center;color:#555;padding:32px">No scans yet. Run your first scan above!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+let currentScanResult = null;
+let chatHistory = [];
+
+async function startScan() {
+    const host = document.getElementById('targetHost').value.trim();
+    const profile = document.getElementById('scanProfile').value;
+
+    if (!host) { alert('Please enter a target host.'); return; }
+
+    const btn = document.getElementById('scanBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Scanning...';
+
+    document.getElementById('progressBar').classList.add('active');
+    document.getElementById('resultsSection').classList.remove('active');
+    document.getElementById('aiPanel').style.display = 'none';
+    document.getElementById('chatPanel').style.display = 'none';
+
+    animateProgress();
+
+    try {
+        const res = await fetch('/api/scan/full', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ host, profile })
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+            alert('Scan error: ' + data.error);
+            resetScanBtn();
+            return;
+        }
+
+        currentScanResult = data;
+        chatHistory = [];
+        displayResults(data);
+
+    } catch (err) {
+        alert('Connection error: ' + err.message);
+    }
+
+    resetScanBtn();
+}
+
+function animateProgress() {
+    let width = 0;
+    const fill = document.getElementById('progressFill');
+    const label = document.getElementById('progressLabel');
+    const msgs = [
+        'Resolving host...', 'Scanning ports...', 'Grabbing banners...',
+        'Correlating CVEs...', 'Running ML analysis...', 'Generating AI report...'
+    ];
+    let step = 0;
+    const interval = setInterval(() => {
+        width = Math.min(width + Math.random() * 8, 90);
+        fill.style.width = width + '%';
+        if (step < msgs.length) label.textContent = msgs[step++];
+        if (width >= 90) clearInterval(interval);
+    }, 600);
+}
+
+function displayResults(data) {
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('progressLabel').textContent = 'Scan complete!';
+
+    setTimeout(() => {
+        document.getElementById('progressBar').classList.remove('active');
+        document.getElementById('resultsSection').classList.add('active');
+    }, 500);
+
+    document.getElementById('resultsTitle').textContent =
+        `Results: ${data.hostname} (${data.ip}) — ${data.open_count} open ports in ${data.duration}s`;
+
+    const risk = data.risk_score || 'Pending';
+    const badge = document.getElementById('riskBadge');
+    badge.textContent = risk;
+    badge.className = `risk-badge risk-${risk}`;
+
+    // Ports
+    const grid = document.getElementById('portsGrid');
+    grid.innerHTML = '';
+    if (!data.open_ports || data.open_ports.length === 0) {
+        grid.innerHTML = '<p style="color:#555;padding:16px">No open ports found.</p>';
+    } else {
+        data.open_ports.forEach(p => {
+            const cves = (p.cves || []).slice(0, 2).map(c =>
+                `<span class="cve-tag cve-${c.severity}">${c.id} ${c.severity}</span>`
+            ).join('');
+            const ml = p.ml_analysis || {};
+            const zeroDay = ml.zero_day_flag ?
+                '<span class="cve-tag cve-Critical">⚠ Zero-Day Suspected</span>' : '';
+            grid.innerHTML += `
+                <div class="port-card">
+                    <div class="port-number">${p.port}</div>
+                    <div class="port-service">
+                        <strong>${p.service}</strong>
+                        <span>${ml.ml_risk || ''}</span>
+                    </div>
+                    <div class="port-banner">${p.banner || 'No banner'}</div>
+                    <div class="port-cves">${cves}${zeroDay}</div>
+                </div>`;
+        });
+    }
+
+    // AI Analysis
+    if (data.ai_analysis) {
+        const ai = data.ai_analysis;
+        document.getElementById('aiPanel').style.display = 'block';
+        document.getElementById('aiGrid').innerHTML = `
+            <div class="ai-block ai-summary-full">
+                <h4>📋 Threat Summary</h4>
+                <p>${ai.threat_summary || '—'}</p>
+            </div>
+            <div class="ai-block">
+                <h4>🚨 Critical Findings</h4>
+                <ul>${(ai.critical_findings || []).map(f => `<li>${f}</li>`).join('')}</ul>
+            </div>
+            <div class="ai-block">
+                <h4>⚔️ Attack Vectors</h4>
+                <ul>${(ai.attack_vectors || []).map(a => `<li>${a}</li>`).join('')}</ul>
+            </div>
+            <div class="ai-block ai-summary-full">
+                <h4>🛡️ Recommendations</h4>
+                <ul>${(ai.recommendations || []).map(r => `<li>${r}</li>`).join('')}</ul>
+            </div>`;
+        document.getElementById('chatPanel').style.display = 'block';
+    }
+
+    // Reload history table only
+    fetch('/api/scans')
+        .then(r => r.json())
+        .then(scans => {
+            const tbody = document.querySelector('table tbody');
+            tbody.innerHTML = scans.map(s => `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${s.hostname}</td>
+                    <td>${s.ip}</td>
+                    <td>${s.profile}</td>
+                    <td>${s.open_count}</td>
+                    <td><span class="risk-badge risk-${s.risk_score}">${s.risk_score}</span></td>
+                    <td>${s.duration}s</td>
+                    <td>${s.scan_time}</td>
+                </tr>`).join('');
+        });
+}
+
+async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg || !currentScanResult) return;
+
+    input.value = '';
+    addChatMsg('user', msg);
+    addChatMsg('ai', '<div class="spinner"></div>');
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: msg,
+                scan_id: currentScanResult.scan_id,
+                chat_history: chatHistory
+            })
+        });
+        const data = await res.json();
+        const messages = document.getElementById('chatMessages');
+        messages.lastChild.remove();
+        addChatMsg('ai', data.reply);
+        chatHistory.push({ role: 'user', content: msg });
+        chatHistory.push({ role: 'assistant', content: data.reply });
+    } catch (err) {
+        addChatMsg('ai', 'Error: ' + err.message);
+    }
+}
+
+function addChatMsg(role, text) {
+    const messages = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.innerHTML = `
+        <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
+        <div class="text">${text}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function resetScanBtn() {
+    const btn = document.getElementById('scanBtn');
+    btn.disabled = false;
+    btn.innerHTML = '🚀 Start Scan';
+}
+</script>
 </body>
 </html>
