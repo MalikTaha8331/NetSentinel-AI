@@ -216,3 +216,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# NetSentinel AI - Project specific
+database/
+*.db
+exports/
+logs/
+datasets/
+models/
+*.pkl
+*.h5
+*.pt
+*.pth
+test_*.py
