@@ -4,178 +4,438 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetSentinel AI — Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg:        #030805;
+            --bg2:       #060f08;
+            --bg3:       #0a1a0d;
+            --border:    #1a3320;
+            --border2:   #0f2415;
+            --green:     #00ff41;
+            --green2:    #00c832;
+            --green3:    #004d14;
+            --green-dim: #00a028;
+            --amber:     #ffb300;
+            --red:       #ff3232;
+            --red2:      #cc0000;
+            --blue:      #00cfff;
+            --text:      #c8e6c9;
+            --text2:     #4a7a50;
+            --text3:     #2a4a30;
+            --mono:      'Share Tech Mono', monospace;
+            --head:      'Rajdhani', sans-serif;
+            --body:      'Inter', sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #070b14;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--body);
             min-height: 100vh;
+            overflow-x: hidden;
         }
+
+        /* ── SCANLINES OVERLAY ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,255,65,0.015) 2px,
+                rgba(0,255,65,0.015) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ── TOP NAVBAR ── */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 16px;
+            z-index: 200;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 8px;
+        }
+
+        .nav-logo .sigil {
+            width: 32px; height: 32px;
+            border: 1px solid var(--green);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--green);
+            position: relative;
+            box-shadow: 0 0 10px rgba(0,255,65,0.3);
+        }
+
+        .nav-logo .sigil::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 1px solid rgba(0,255,65,0.2);
+        }
+
+        .nav-logo h1 {
+            font-family: var(--head);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .nav-logo span {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text2);
+            display: block;
+            letter-spacing: 2px;
+            margin-top: -2px;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            width: 32px; height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-toggle:hover { border-color: var(--green); color: var(--green); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-family: var(--head);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text2);
+            text-decoration: none;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+        }
+
+        .nav-link:hover {
+            color: var(--green);
+            border-color: var(--border);
+            background: var(--bg3);
+        }
+
+        .nav-link.active {
+            color: var(--green);
+            border-color: var(--green3);
+            background: rgba(0,255,65,0.05);
+        }
+
+        .nav-link .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .nav-status {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .nav-user {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text2);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 3px;
+        }
+
+        .nav-user span { color: var(--green); }
+
+        .btn-logout {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--red);
+            border: 1px solid rgba(255,50,50,0.3);
+            padding: 4px 10px;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover { background: rgba(255,50,50,0.1); }
 
         /* ── SIDEBAR ── */
         .sidebar {
             position: fixed;
-            left: 0; top: 0;
-            width: 240px;
-            height: 100vh;
-            background: #0d1117;
-            border-right: 1px solid #1f3a5f;
-            display: flex;
-            flex-direction: column;
-            padding: 24px 0;
+            left: 0; top: 56px;
+            width: 220px;
+            height: calc(100vh - 56px);
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
             z-index: 100;
+            transition: transform 0.25s ease;
+            overflow-y: auto;
         }
 
-        .logo {
-            padding: 0 24px 32px;
-            border-bottom: 1px solid #1f3a5f;
+        .sidebar.collapsed { transform: translateX(-220px); }
+
+        .sidebar-section {
+            padding: 0 16px;
+            margin-bottom: 24px;
         }
 
-        .logo h1 {
-            font-size: 20px;
-            color: #2e86de;
+        .sidebar-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text3);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 4px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 13px;
+            font-family: var(--head);
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-item:hover {
+            color: var(--green);
+            background: rgba(0,255,65,0.04);
+            border-color: var(--border);
+        }
+
+        .sidebar-item.active {
+            color: var(--green);
+            background: rgba(0,255,65,0.07);
+            border-color: var(--green3);
+        }
+
+        .sidebar-item .icon { font-size: 15px; width: 20px; text-align: center; }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--border2);
+            margin: 12px 16px;
+        }
+
+        /* ── MAIN CONTENT ── */
+        .main {
+            margin-left: 220px;
+            margin-top: 56px;
+            padding: 28px;
+            min-height: calc(100vh - 56px);
+            transition: margin-left 0.25s ease;
+        }
+
+        .main.expanded { margin-left: 0; }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border2);
+        }
+
+        .page-title {
+            font-family: var(--head);
+            font-size: 26px;
             font-weight: 700;
+            color: var(--green);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .page-subtitle {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text2);
+            margin-top: 4px;
             letter-spacing: 1px;
         }
 
-        .logo p {
-            font-size: 11px;
-            color: #555;
-            margin-top: 4px;
-        }
-
-        .nav {
-            padding: 24px 0;
-            flex: 1;
-        }
-
-        .nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            color: #888;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .nav a:hover, .nav a.active {
-            color: #2e86de;
-            background: #0f1e30;
-            border-left-color: #2e86de;
-        }
-
-        .nav a span { font-size: 18px; }
-
-        .sidebar-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #1f3a5f;
+        .sys-time {
+            font-family: var(--mono);
             font-size: 12px;
-            color: #555;
+            color: var(--text2);
+            text-align: right;
         }
 
-        .sidebar-footer a {
-            color: #e74c3c;
-            text-decoration: none;
+        .sys-time .time {
+            font-size: 20px;
+            color: var(--green);
+            display: block;
         }
 
-        /* ── MAIN ── */
-        .main {
-            margin-left: 240px;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .page-header h2 {
-            font-size: 24px;
-            color: #fff;
-        }
-
-        .page-header p {
-            font-size: 13px;
-            color: #555;
-            margin-top: 4px;
-        }
-
-        /* ── STATS CARDS ── */
+        /* ── STATS GRID ── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 32px;
+            gap: 14px;
+            margin-bottom: 28px;
         }
 
         .stat-card {
-            background: #0d1117;
-            border: 1px solid #1f3a5f;
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 18px 20px;
             position: relative;
             overflow: hidden;
+            cursor: default;
+            transition: border-color 0.2s;
         }
 
-        .stat-card::before {
+        .stat-card:hover { border-color: var(--green3); }
+
+        .stat-card::after {
             content: '';
             position: absolute;
             top: 0; left: 0;
-            width: 100%; height: 3px;
+            width: 3px; height: 100%;
         }
 
-        .stat-card.blue::before { background: #2e86de; }
-        .stat-card.red::before { background: #e74c3c; }
-        .stat-card.yellow::before { background: #f39c12; }
-        .stat-card.green::before { background: #27ae60; }
+        .stat-card.c-green::after { background: var(--green); }
+        .stat-card.c-red::after   { background: var(--red); }
+        .stat-card.c-amber::after { background: var(--amber); }
+        .stat-card.c-blue::after  { background: var(--blue); }
 
-        .stat-card .label {
-            font-size: 12px;
-            color: #555;
+        .stat-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
-        .stat-card .value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .stat-card .icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+        .stat-value {
+            font-family: var(--mono);
             font-size: 36px;
-            opacity: 0.15;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .stat-card.c-green .stat-value { color: var(--green); }
+        .stat-card.c-red   .stat-value { color: var(--red); }
+        .stat-card.c-amber .stat-value { color: var(--amber); }
+        .stat-card.c-blue  .stat-value { color: var(--blue); }
+
+        .stat-icon {
+            position: absolute;
+            right: 16px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 32px;
+            opacity: 0.08;
         }
 
         /* ── SCAN PANEL ── */
-        .scan-panel {
-            background: #0d1117;
-            border: 1px solid #1f3a5f;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
+        .panel {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 22px 24px;
+            margin-bottom: 20px;
         }
 
-        .scan-panel h3 {
-            font-size: 16px;
-            color: #2e86de;
-            margin-bottom: 20px;
+        .panel-header {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border2);
+        }
+
+        .panel-header h3 {
+            font-family: var(--head);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .panel-tag {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text3);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            letter-spacing: 2px;
         }
 
         .scan-form {
@@ -192,80 +452,107 @@
         }
 
         .form-group label {
-            font-size: 12px;
-            color: #555;
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        .form-group input, .form-group select {
-            background: #070b14;
-            border: 1px solid #1f3a5f;
-            border-radius: 8px;
-            color: #fff;
-            padding: 10px 14px;
-            font-size: 14px;
+        .form-group input,
+        .form-group select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--green);
+            padding: 9px 13px;
+            font-size: 13px;
+            font-family: var(--mono);
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .form-group input { width: 280px; }
+        .form-group input { width: 300px; }
 
-        .form-group input:focus, .form-group select:focus {
-            border-color: #2e86de;
+        .form-group input::placeholder { color: var(--text3); }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 1px rgba(0,255,65,0.15);
         }
+
+        .form-group select option { background: var(--bg2); }
 
         .btn-scan {
-            background: #2e86de;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 28px;
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green);
+            border-radius: 3px;
+            padding: 9px 28px;
+            font-family: var(--head);
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-scan:hover { background: #1a6fc4; }
-        .btn-scan:disabled { background: #1f3a5f; cursor: not-allowed; }
+        .btn-scan::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--green);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.2s;
+            z-index: 0;
+        }
+
+        .btn-scan:hover::before { transform: scaleX(1); }
+        .btn-scan:hover { color: var(--bg); }
+        .btn-scan span { position: relative; z-index: 1; }
+        .btn-scan:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-scan:disabled::before { display: none; }
 
         /* ── PROGRESS ── */
-        .progress-bar {
-            margin-top: 16px;
-            display: none;
-        }
-
-        .progress-bar.active { display: block; }
+        .progress-wrap { margin-top: 16px; display: none; }
+        .progress-wrap.active { display: block; }
 
         .progress-track {
-            background: #070b14;
-            border-radius: 4px;
-            height: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            height: 4px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #2e86de, #1abc9c);
-            border-radius: 4px;
+            background: linear-gradient(90deg, var(--green3), var(--green));
             width: 0%;
-            transition: width 0.3s;
-            animation: pulse-bar 1.5s ease-in-out infinite;
+            transition: width 0.4s;
         }
 
-        @keyframes pulse-bar {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .progress-label {
-            font-size: 12px;
-            color: #555;
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
             margin-top: 6px;
+        }
+
+        .progress-msg {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text2);
+        }
+
+        .progress-pct {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--green);
         }
 
         /* ── RESULTS ── */
@@ -274,75 +561,87 @@
 
         .results-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 16px;
         }
 
-        .results-header h3 {
-            font-size: 16px;
-            color: #fff;
+        .results-title {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text2);
         }
 
+        .results-title strong { color: var(--green); font-size: 14px; }
+
         .risk-badge {
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
+            font-family: var(--mono);
+            font-size: 11px;
             font-weight: 700;
+            letter-spacing: 3px;
+            padding: 4px 14px;
+            border-radius: 2px;
             text-transform: uppercase;
+        }
+
+        .risk-Critical { background: rgba(255,50,50,0.1); color: var(--red); border: 1px solid var(--red); }
+        .risk-High     { background: rgba(255,179,0,0.1); color: var(--amber); border: 1px solid var(--amber); }
+        .risk-Medium   { background: rgba(255,220,0,0.08); color: #ffd700; border: 1px solid #ffd700; }
+        .risk-Low      { background: rgba(0,255,65,0.06); color: var(--green); border: 1px solid var(--green3); }
+        .risk-Pending  { background: rgba(100,100,100,0.1); color: #666; border: 1px solid #333; }
+
+        /* ── PORT CARDS ── */
+        .ports-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+        .port-card {
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-left: 3px solid var(--border);
+            border-radius: 3px;
+            padding: 14px 18px;
+            display: grid;
+            grid-template-columns: 70px 130px 1fr auto;
+            align-items: center;
+            gap: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .port-card:hover { border-left-color: var(--green); }
+        .port-card.threat { border-left-color: var(--red); }
+        .port-card.medium { border-left-color: var(--amber); }
+
+        .port-num {
+            font-family: var(--mono);
+            font-size: 22px;
+            color: var(--green);
+        }
+
+        .port-info strong {
+            display: block;
+            font-family: var(--head);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
             letter-spacing: 1px;
         }
 
-        .risk-Critical { background: #3d0f0f; color: #e74c3c; border: 1px solid #e74c3c; }
-        .risk-High { background: #3d220f; color: #f39c12; border: 1px solid #f39c12; }
-        .risk-Medium { background: #2d2d0f; color: #f1c40f; border: 1px solid #f1c40f; }
-        .risk-Low { background: #0f2d1a; color: #27ae60; border: 1px solid #27ae60; }
-        .risk-Pending { background: #1a1a2d; color: #888; border: 1px solid #888; }
-
-        .ports-grid {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .port-card {
-            background: #070b14;
-            border: 1px solid #1f3a5f;
-            border-radius: 10px;
-            padding: 16px 20px;
-            display: grid;
-            grid-template-columns: 80px 120px 1fr auto;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .port-number {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2e86de;
-        }
-
-        .port-service {
-            font-size: 13px;
-            color: #888;
-        }
-
-        .port-service strong {
-            display: block;
-            color: #fff;
-            font-size: 14px;
+        .port-info span {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text2);
+            letter-spacing: 1px;
         }
 
         .port-banner {
-            font-size: 12px;
-            color: #555;
-            font-family: monospace;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text2);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .port-cves {
+        .port-tags {
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -350,384 +649,643 @@
         }
 
         .cve-tag {
-            font-size: 11px;
+            font-family: var(--mono);
+            font-size: 10px;
             padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
+            border-radius: 2px;
+            letter-spacing: 1px;
         }
 
-        .cve-Critical { background: #3d0f0f; color: #e74c3c; }
-        .cve-High { background: #3d220f; color: #f39c12; }
-        .cve-Medium { background: #2d2d0f; color: #f1c40f; }
-        .cve-Low { background: #0f2d1a; color: #27ae60; }
+        .cve-Critical { background: rgba(255,50,50,0.12); color: var(--red); border: 1px solid rgba(255,50,50,0.3); }
+        .cve-High     { background: rgba(255,179,0,0.1); color: var(--amber); border: 1px solid rgba(255,179,0,0.3); }
+        .cve-Medium   { background: rgba(255,220,0,0.08); color: #ffd700; border: 1px solid rgba(255,220,0,0.25); }
+        .cve-Zero     { background: rgba(0,207,255,0.1); color: var(--blue); border: 1px solid rgba(0,207,255,0.3); }
 
-        /* ── AI ANALYSIS ── */
-        .ai-panel {
-            background: #0d1117;
-            border: 1px solid #1f3a5f;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
+        /* ── AI ANALYSIS PANEL ── */
+        .ai-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
         }
 
-        .ai-panel h3 {
-            font-size: 16px;
-            color: #2e86de;
-            margin-bottom: 16px;
+        .ai-block {
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: 3px;
+            padding: 16px;
+        }
+
+        .ai-block.full { grid-column: 1 / -1; }
+
+        .ai-block-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .ai-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .ai-block {
-            background: #070b14;
-            border: 1px solid #1f3a5f;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .ai-block h4 {
-            font-size: 12px;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+        .ai-block-label::after {
+            content: '';
+            flex: 1;
+            border-top: 1px solid var(--border2);
         }
 
         .ai-block p, .ai-block li {
             font-size: 13px;
-            color: #ccc;
-            line-height: 1.6;
+            color: var(--text);
+            line-height: 1.7;
+            font-family: var(--body);
         }
 
         .ai-block ul { padding-left: 16px; }
-        .ai-block li { margin-bottom: 4px; }
-
-        .ai-summary-full {
-            grid-column: 1 / -1;
-        }
-
-        /* ── CHAT ── */
-        .chat-panel {
-            background: #0d1117;
-            border: 1px solid #1f3a5f;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-        }
-
-        .chat-panel h3 {
-            font-size: 16px;
-            color: #2e86de;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chat-messages {
-            background: #070b14;
-            border: 1px solid #1f3a5f;
-            border-radius: 8px;
-            padding: 16px;
-            height: 220px;
-            overflow-y: auto;
-            margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .chat-msg {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-        }
-
-        .chat-msg .avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .chat-msg.user .avatar { background: #1f3a5f; }
-        .chat-msg.ai .avatar { background: #1a3a2a; }
-
-        .chat-msg .text {
-            font-size: 13px;
-            color: #ccc;
-            line-height: 1.5;
-            background: #0d1117;
-            padding: 8px 12px;
-            border-radius: 8px;
-            max-width: 85%;
-        }
-
-        .chat-input-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chat-input-row input {
-            flex: 1;
-            background: #070b14;
-            border: 1px solid #1f3a5f;
-            border-radius: 8px;
-            color: #fff;
-            padding: 10px 14px;
-            font-size: 13px;
-            outline: none;
-        }
-
-        .chat-input-row input:focus { border-color: #2e86de; }
-
-        .btn-send {
-            background: #2e86de;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-send:hover { background: #1a6fc4; }
+        .ai-block li { margin-bottom: 5px; }
+        .ai-block li::marker { color: var(--green); }
 
         /* ── HISTORY TABLE ── */
-        .history-panel {
-            background: #0d1117;
-            border: 1px solid #1f3a5f;
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-        .history-panel h3 {
-            font-size: 16px;
-            color: #2e86de;
-            margin-bottom: 16px;
-        }
+        .table-wrap { overflow-x: auto; }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 12px;
+        }
+
+        thead tr {
+            border-bottom: 1px solid var(--border);
         }
 
         th {
-            text-align: left;
-            padding: 10px 12px;
-            color: #555;
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 11px;
-            border-bottom: 1px solid #1f3a5f;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 400;
         }
 
         td {
-            padding: 12px;
-            border-bottom: 1px solid #0f1e30;
-            color: #ccc;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border2);
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
         }
 
-        tr:hover td { background: #0f1e30; }
+        tbody tr { transition: background 0.15s; }
+        tbody tr:hover td { background: rgba(0,255,65,0.02); }
 
+        td.host { color: var(--green); }
+        td.ip   { color: var(--text2); }
+
+        .empty-row td {
+            text-align: center;
+            color: var(--text3);
+            padding: 40px;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        /* ── FLOATING AI CHAT ── */
+        .chat-bubble {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 500;
+        }
+
+        .chat-toggle {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--bg2);
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-size: 22px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(0,255,65,0.25);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .chat-toggle:hover {
+            box-shadow: 0 0 30px rgba(0,255,65,0.4);
+            transform: scale(1.05);
+        }
+
+        .chat-notif {
+            position: absolute;
+            top: -3px; right: -3px;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--red);
+            border: 2px solid var(--bg);
+            display: none;
+        }
+
+        .chat-notif.visible { display: block; }
+
+        .chat-window {
+            position: absolute;
+            bottom: 64px; right: 0;
+            width: 380px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 20px rgba(0,255,65,0.08);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-window.open { display: flex; }
+
+        .chat-win-header {
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-win-header .avatar {
+            width: 28px; height: 28px;
+            border: 1px solid var(--green);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            color: var(--green);
+            box-shadow: 0 0 8px rgba(0,255,65,0.3);
+        }
+
+        .chat-win-header h4 {
+            font-family: var(--head);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .chat-win-header p {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 1px;
+        }
+
+        .chat-win-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .chat-messages {
+            padding: 16px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .chat-msg {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .msg-avatar {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .chat-msg.ai .msg-avatar { color: var(--green); border-color: var(--green3); }
+        .chat-msg.user .msg-avatar { color: var(--text2); }
+
+        .msg-text {
+            font-family: var(--body);
+            font-size: 12px;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: 4px;
+            padding: 8px 12px;
+            max-width: 85%;
+        }
+
+        .chat-msg.user .msg-text {
+            background: rgba(0,255,65,0.03);
+            border-color: var(--green3);
+            margin-left: auto;
+        }
+
+        .chat-msg.user { flex-direction: row-reverse; }
+
+        .no-scan-msg {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text3);
+            text-align: center;
+            padding: 20px;
+            letter-spacing: 1px;
+        }
+
+        .chat-footer {
+            border-top: 1px solid var(--border2);
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-footer input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 8px 12px;
+            outline: none;
+        }
+
+        .chat-footer input:focus { border-color: var(--green); }
+        .chat-footer input::placeholder { color: var(--text3); }
+
+        .btn-send {
+            background: var(--green3);
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 8px 14px;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+        }
+
+        .btn-send:hover { background: var(--green); color: var(--bg); }
+
+        /* ── SPINNER ── */
         .spinner {
             display: inline-block;
-            width: 16px; height: 16px;
-            border: 2px solid #1f3a5f;
-            border-top-color: #2e86de;
+            width: 12px; height: 12px;
+            border: 1px solid var(--border);
+            border-top-color: var(--green);
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--green3); }
     </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-    <div class="logo">
-        <h1>⚡ NetSentinel</h1>
-        <p>AI-Powered Security Scanner</p>
-    </div>
-    <nav class="nav">
-        <a href="#" class="active"><span>🏠</span> Dashboard</a>
-        <a href="#history"><span>📋</span> Scan History</a>
-        <a href="#"><span>🧠</span> AI Analysis</a>
-        <a href="#"><span>📄</span> Reports</a>
-    </nav>
-    <div class="sidebar-footer">
-        Logged in as <strong>{{ current_user.username }}</strong><br>
-        <a href="{{ url_for('auth.logout') }}">Logout</a>
-    </div>
-</div>
+<!-- ══ TOP NAVBAR ══ -->
+<nav class="navbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
 
-<!-- MAIN -->
-<div class="main">
-
-    <!-- HEADER -->
-    <div class="page-header">
+    <div class="nav-logo">
+        <div class="sigil">NS</div>
         <div>
-            <h2>Security Dashboard</h2>
-            <p>AI-powered port scanning & zero-day threat detection</p>
+            <h1>NetSentinel</h1>
+            <span>AI SECURITY PLATFORM</span>
         </div>
     </div>
 
-    <!-- STATS -->
-    <div class="stats-grid">
-        <div class="stat-card blue">
-            <div class="label">Total Scans</div>
-            <div class="value">{{ scans|length }}</div>
-            <div class="icon">🔍</div>
-        </div>
-        <div class="stat-card red">
-            <div class="label">Critical Hosts</div>
-            <div class="value">{{ scans|selectattr('risk_score', 'equalto', 'Critical')|list|length }}</div>
-            <div class="icon">🚨</div>
-        </div>
-        <div class="stat-card yellow">
-            <div class="label">High Risk</div>
-            <div class="value">{{ scans|selectattr('risk_score', 'equalto', 'High')|list|length }}</div>
-            <div class="icon">⚠️</div>
-        </div>
-        <div class="stat-card green">
-            <div class="label">Clean Hosts</div>
-            <div class="value">{{ scans|selectattr('risk_score', 'equalto', 'Low')|list|length }}</div>
-            <div class="icon">✅</div>
-        </div>
+    <div class="nav-links">
+        <a class="nav-link active" onclick="showPage('dashboard')">
+            <span class="dot"></span> Dashboard
+        </a>
+        <a class="nav-link" onclick="showPage('history')">📋 History</a>
+        <a class="nav-link" onclick="showPage('reports')">📄 Reports</a>
     </div>
 
-    <!-- SCAN PANEL -->
-    <div class="scan-panel">
-        <h3>🎯 New Scan</h3>
-        <div class="scan-form">
-            <div class="form-group">
-                <label>Target Host / IP</label>
-                <input type="text" id="targetHost" placeholder="e.g. scanme.nmap.org or 192.168.1.1">
-            </div>
-            <div class="form-group">
-                <label>Scan Profile</label>
-                <select id="scanProfile">
-                    <option value="quick">Quick (Common Ports)</option>
-                    <option value="standard">Standard (1-1024)</option>
-                    <option value="full">Full (1-65535)</option>
-                </select>
-            </div>
-            <button class="btn-scan" id="scanBtn" onclick="startScan()">
-                🚀 Start Scan
-            </button>
+    <div class="nav-right">
+        <div class="nav-status">
+            <div class="status-dot"></div>
+            SYSTEMS ONLINE
         </div>
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-track">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-label" id="progressLabel">Initializing scan...</div>
-        </div>
+        <div class="nav-user">OPR: <span>{{ current_user.username }}</span></div>
+        <a class="btn-logout" href="{{ url_for('auth.logout') }}">[ EXIT ]</a>
+    </div>
+</nav>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-label">// Operations</div>
+        <a class="sidebar-item active" onclick="showPage('dashboard')">
+            <span class="icon">⬛</span> Dashboard
+        </a>
+        <a class="sidebar-item" onclick="showPage('history')">
+            <span class="icon">📋</span> Scan History
+        </a>
+        <a class="sidebar-item" onclick="showPage('reports')">
+            <span class="icon">📄</span> Reports
+        </a>
     </div>
 
-    <!-- RESULTS -->
-    <div class="results-section" id="resultsSection">
+    <hr class="sidebar-divider">
 
-        <div class="results-header">
-            <h3 id="resultsTitle">Scan Results</h3>
-            <span class="risk-badge" id="riskBadge">—</span>
+    <div class="sidebar-section">
+        <div class="sidebar-label">// Intelligence</div>
+        <a class="sidebar-item">
+            <span class="icon">🧠</span> AI Analysis
+        </a>
+        <a class="sidebar-item">
+            <span class="icon">🔴</span> Threat Feed
+        </a>
+        <a class="sidebar-item">
+            <span class="icon">📊</span> CVE Database
+        </a>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+        <div class="sidebar-label">// System</div>
+        <a class="sidebar-item">
+            <span class="icon">⚙️</span> Settings
+        </a>
+        <a class="sidebar-item">
+            <span class="icon">📝</span> Audit Log
+        </a>
+    </div>
+</aside>
+
+<!-- ══ MAIN CONTENT ══ -->
+<main class="main" id="main">
+
+    <!-- ── PAGE: DASHBOARD ── -->
+    <div id="page-dashboard">
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">Security Operations</div>
+                <div class="page-subtitle">// AI-POWERED PORT SCANNING & ZERO-DAY THREAT DETECTION</div>
+            </div>
+            <div class="sys-time">
+                <span class="time" id="clock">--:--:--</span>
+                <span id="datestr" style="font-size:10px;letter-spacing:1px"></span>
+            </div>
         </div>
 
-        <div class="ports-grid" id="portsGrid"></div>
-
-        <!-- AI ANALYSIS -->
-        <div class="ai-panel" id="aiPanel" style="display:none">
-            <h3>🤖 AI Threat Analysis</h3>
-            <div class="ai-grid" id="aiGrid"></div>
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card c-green">
+                <div class="stat-label">// Total Scans</div>
+                <div class="stat-value">{{ scans|length }}</div>
+                <div class="stat-icon">🔍</div>
+            </div>
+            <div class="stat-card c-red">
+                <div class="stat-label">// Critical Hosts</div>
+                <div class="stat-value">{{ scans|selectattr('risk_score', 'equalto', 'Critical')|list|length }}</div>
+                <div class="stat-icon">🚨</div>
+            </div>
+            <div class="stat-card c-amber">
+                <div class="stat-label">// High Risk</div>
+                <div class="stat-value">{{ scans|selectattr('risk_score', 'equalto', 'High')|list|length }}</div>
+                <div class="stat-icon">⚠️</div>
+            </div>
+            <div class="stat-card c-blue">
+                <div class="stat-label">// Clean Hosts</div>
+                <div class="stat-value">{{ scans|selectattr('risk_score', 'equalto', 'Low')|list|length }}</div>
+                <div class="stat-icon">✅</div>
+            </div>
         </div>
 
-        <!-- CHAT -->
-        <div class="chat-panel" id="chatPanel" style="display:none">
-            <h3>💬 Ask AI About This Scan</h3>
-            <div class="chat-messages" id="chatMessages">
-                <div class="chat-msg ai">
-                    <div class="avatar">🤖</div>
-                    <div class="text">Hi! I've analyzed this scan. Ask me anything about the vulnerabilities, attack vectors, or how to fix them.</div>
+        <!-- SCAN PANEL -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3>🎯 New Scan</h3>
+                <span class="panel-tag">RECON MODULE v2.1</span>
+            </div>
+            <div class="scan-form">
+                <div class="form-group">
+                    <label>Target Host / IP</label>
+                    <input type="text" id="targetHost" placeholder="scanme.nmap.org or 192.168.1.1">
+                </div>
+                <div class="form-group">
+                    <label>Scan Profile</label>
+                    <select id="scanProfile">
+                        <option value="quick">Quick — Common Ports</option>
+                        <option value="standard">Standard — 1-1024</option>
+                        <option value="full">Full — 1-65535</option>
+                    </select>
+                </div>
+                <button class="btn-scan" id="scanBtn" onclick="startScan()">
+                    <span>▶ INITIATE SCAN</span>
+                </button>
+            </div>
+            <div class="progress-wrap" id="progressWrap">
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-meta">
+                    <span class="progress-msg" id="progressMsg">Initializing...</span>
+                    <span class="progress-pct" id="progressPct">0%</span>
                 </div>
             </div>
-            <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="e.g. Which vulnerability is most dangerous?" onkeydown="if(event.key==='Enter') sendChat()">
-                <button class="btn-send" onclick="sendChat()">Send</button>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-section" id="resultsSection">
+
+            <div class="panel">
+                <div class="results-header">
+                    <div class="results-title" id="resultsTitle">—</div>
+                    <span class="risk-badge" id="riskBadge">—</span>
+                </div>
+                <div class="ports-list" id="portsList"></div>
             </div>
+
+            <div class="panel" id="aiPanel" style="display:none">
+                <div class="panel-header">
+                    <h3>🤖 AI Threat Analysis</h3>
+                    <span class="panel-tag">GROQ LLM · LLAMA-3.3-70B</span>
+                </div>
+                <div class="ai-grid" id="aiGrid"></div>
+            </div>
+
         </div>
 
     </div>
 
-    <!-- HISTORY -->
-    <div class="history-panel" id="history">
-        <h3>📋 Recent Scans</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Host</th>
-                    <th>IP</th>
-                    <th>Profile</th>
-                    <th>Open Ports</th>
-                    <th>Risk</th>
-                    <th>Duration</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for scan in scans %}
-                <tr>
-                    <td>{{ scan.id }}</td>
-                    <td>{{ scan.hostname }}</td>
-                    <td>{{ scan.ip }}</td>
-                    <td>{{ scan.profile }}</td>
-                    <td>{{ scan.open_count }}</td>
-                    <td><span class="risk-badge risk-{{ scan.risk_score }}">{{ scan.risk_score }}</span></td>
-                    <td>{{ scan.duration }}s</td>
-                    <td>{{ scan.scan_time.strftime('%Y-%m-%d %H:%M') }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="8" style="text-align:center;color:#555;padding:32px">No scans yet. Run your first scan above!</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- ── PAGE: HISTORY ── -->
+    <div id="page-history" style="display:none">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Scan History</div>
+                <div class="page-subtitle">// ALL RECORDED RECONNAISSANCE OPERATIONS</div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Host</th>
+                            <th>IP Address</th>
+                            <th>Profile</th>
+                            <th>Open Ports</th>
+                            <th>Risk Level</th>
+                            <th>Duration</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        {% for scan in scans %}
+                        <tr>
+                            <td>{{ scan.id }}</td>
+                            <td class="host">{{ scan.hostname }}</td>
+                            <td class="ip">{{ scan.ip }}</td>
+                            <td>{{ scan.profile }}</td>
+                            <td>{{ scan.open_count }}</td>
+                            <td><span class="risk-badge risk-{{ scan.risk_score }}">{{ scan.risk_score }}</span></td>
+                            <td>{{ scan.duration }}s</td>
+                            <td>{{ scan.scan_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr class="empty-row"><td colspan="8">[ NO SCAN RECORDS FOUND — INITIATE FIRST SCAN ]</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
+    <!-- ── PAGE: REPORTS ── -->
+    <div id="page-reports" style="display:none">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Reports</div>
+                <div class="page-subtitle">// PDF REPORT GENERATION — COMING SOON</div>
+            </div>
+        </div>
+        <div class="panel" style="text-align:center;padding:60px">
+            <div style="font-family:var(--mono);color:var(--text3);font-size:13px;letter-spacing:2px">
+                [ PDF REPORT MODULE — DAY 9 ]<br><br>
+                <span style="color:var(--text2)">Run a scan first, then generate a full PDF threat report.</span>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ══ FLOATING AI CHAT ══ -->
+<div class="chat-bubble">
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-win-header">
+            <div class="avatar">AI</div>
+            <div>
+                <h4>NetSentinel Agent</h4>
+                <p>// THREAT ANALYSIS ASSISTANT</p>
+            </div>
+            <button class="chat-win-close" onclick="toggleChat()">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg ai">
+                <div class="msg-avatar">🤖</div>
+                <div class="msg-text">NETSENTINEL AI ONLINE. Run a scan first, then ask me anything about the vulnerabilities, attack vectors, or remediation steps.</div>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chatInput" placeholder="Ask about the scan..." onkeydown="if(event.key==='Enter') sendChat()">
+            <button class="btn-send" onclick="sendChat()">SEND</button>
+        </div>
+    </div>
+    <button class="chat-toggle" onclick="toggleChat()" title="AI Assistant">
+        🤖
+        <span class="chat-notif" id="chatNotif"></span>
+    </button>
 </div>
 
 <script>
-let currentScanResult = null;
+// ── STATE ──
+let currentScan = null;
 let chatHistory = [];
+let sidebarOpen = true;
+let chatOpen = false;
 
+// ── CLOCK ──
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toTimeString().slice(0,8);
+    document.getElementById('datestr').textContent = now.toDateString().toUpperCase();
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── SIDEBAR ──
+function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+    document.getElementById('main').classList.toggle('expanded', !sidebarOpen);
+}
+
+// ── PAGES ──
+function showPage(name) {
+    ['dashboard','history','reports'].forEach(p => {
+        document.getElementById('page-' + p).style.display = p === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.nav-link, .sidebar-item').forEach(el => el.classList.remove('active'));
+}
+
+// ── SCAN ──
 async function startScan() {
     const host = document.getElementById('targetHost').value.trim();
     const profile = document.getElementById('scanProfile').value;
-
-    if (!host) { alert('Please enter a target host.'); return; }
+    if (!host) { alert('Enter a target host.'); return; }
 
     const btn = document.getElementById('scanBtn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div> Scanning...';
+    btn.querySelector('span').textContent = '⏳ SCANNING...';
 
-    document.getElementById('progressBar').classList.add('active');
+    document.getElementById('progressWrap').classList.add('active');
     document.getElementById('resultsSection').classList.remove('active');
     document.getElementById('aiPanel').style.display = 'none';
-    document.getElementById('chatPanel').style.display = 'none';
 
-    animateProgress();
+    let pct = 0;
+    const msgs = ['Resolving host...','Scanning ports...','Grabbing banners...','Correlating CVEs...','Running ML ensemble...','Generating AI analysis...'];
+    let step = 0;
+    const fill = document.getElementById('progressFill');
+    const msg  = document.getElementById('progressMsg');
+    const pctEl= document.getElementById('progressPct');
+
+    const timer = setInterval(() => {
+        pct = Math.min(pct + Math.random() * 7, 88);
+        fill.style.width = pct + '%';
+        pctEl.textContent = Math.round(pct) + '%';
+        if (step < msgs.length) msg.textContent = msgs[step++];
+    }, 700);
 
     try {
         const res = await fetch('/api/scan/full', {
@@ -735,174 +1293,170 @@ async function startScan() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ host, profile })
         });
-
         const data = await res.json();
+        clearInterval(timer);
 
-        if (data.error) {
-            alert('Scan error: ' + data.error);
-            resetScanBtn();
-            return;
-        }
+        if (data.error) { alert('Error: ' + data.error); resetBtn(); return; }
 
-        currentScanResult = data;
+        fill.style.width = '100%';
+        pctEl.textContent = '100%';
+        msg.textContent = 'SCAN COMPLETE — ' + data.open_count + ' PORTS FOUND';
+
+        currentScan = data;
         chatHistory = [];
-        displayResults(data);
+        renderResults(data);
 
-    } catch (err) {
-        alert('Connection error: ' + err.message);
-    }
+        // Update history table
+        refreshHistory();
 
-    resetScanBtn();
+        // Notify chat
+        if (!chatOpen) document.getElementById('chatNotif').classList.add('visible');
+
+        // Update chat greeting
+        document.getElementById('chatMessages').innerHTML = `
+            <div class="chat-msg ai">
+                <div class="msg-avatar">🤖</div>
+                <div class="msg-text">Scan complete. Target: <strong>${data.hostname}</strong> — Risk: <strong>${data.risk_score}</strong>. ${data.open_count} open ports found. Ask me anything.</div>
+            </div>`;
+
+    } catch(e) { clearInterval(timer); alert('Error: ' + e.message); }
+    resetBtn();
 }
 
-function animateProgress() {
-    let width = 0;
-    const fill = document.getElementById('progressFill');
-    const label = document.getElementById('progressLabel');
-    const msgs = [
-        'Resolving host...', 'Scanning ports...', 'Grabbing banners...',
-        'Correlating CVEs...', 'Running ML analysis...', 'Generating AI report...'
-    ];
-    let step = 0;
-    const interval = setInterval(() => {
-        width = Math.min(width + Math.random() * 8, 90);
-        fill.style.width = width + '%';
-        if (step < msgs.length) label.textContent = msgs[step++];
-        if (width >= 90) clearInterval(interval);
-    }, 600);
+function resetBtn() {
+    const btn = document.getElementById('scanBtn');
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '▶ INITIATE SCAN';
 }
 
-function displayResults(data) {
-    document.getElementById('progressFill').style.width = '100%';
-    document.getElementById('progressLabel').textContent = 'Scan complete!';
-
+function renderResults(data) {
     setTimeout(() => {
-        document.getElementById('progressBar').classList.remove('active');
+        document.getElementById('progressWrap').classList.remove('active');
         document.getElementById('resultsSection').classList.add('active');
-    }, 500);
+    }, 600);
 
-    document.getElementById('resultsTitle').textContent =
-        `Results: ${data.hostname} (${data.ip}) — ${data.open_count} open ports in ${data.duration}s`;
+    document.getElementById('resultsTitle').innerHTML =
+        `<strong>${data.hostname}</strong> (${data.ip}) — ${data.open_count} open ports in ${data.duration}s`;
 
     const risk = data.risk_score || 'Pending';
     const badge = document.getElementById('riskBadge');
-    badge.textContent = risk;
-    badge.className = `risk-badge risk-${risk}`;
+    badge.textContent = risk.toUpperCase();
+    badge.className = 'risk-badge risk-' + risk;
 
-    // Ports
-    const grid = document.getElementById('portsGrid');
-    grid.innerHTML = '';
-    if (!data.open_ports || data.open_ports.length === 0) {
-        grid.innerHTML = '<p style="color:#555;padding:16px">No open ports found.</p>';
-    } else {
-        data.open_ports.forEach(p => {
-            const cves = (p.cves || []).slice(0, 2).map(c =>
-                `<span class="cve-tag cve-${c.severity}">${c.id} ${c.severity}</span>`
-            ).join('');
-            const ml = p.ml_analysis || {};
-            const zeroDay = ml.zero_day_flag ?
-                '<span class="cve-tag cve-Critical">⚠ Zero-Day Suspected</span>' : '';
-            grid.innerHTML += `
-                <div class="port-card">
-                    <div class="port-number">${p.port}</div>
-                    <div class="port-service">
-                        <strong>${p.service}</strong>
-                        <span>${ml.ml_risk || ''}</span>
-                    </div>
-                    <div class="port-banner">${p.banner || 'No banner'}</div>
-                    <div class="port-cves">${cves}${zeroDay}</div>
-                </div>`;
-        });
+    const list = document.getElementById('portsList');
+    list.innerHTML = '';
+
+    if (!data.open_ports || !data.open_ports.length) {
+        list.innerHTML = '<div style="font-family:var(--mono);color:var(--text3);padding:20px;font-size:11px;letter-spacing:2px">[ NO OPEN PORTS DETECTED ]</div>';
+        return;
     }
 
-    // AI Analysis
+    data.open_ports.forEach(p => {
+        const ml = p.ml_analysis || {};
+        const cves = (p.cves || []).slice(0, 2).map(c =>
+            `<span class="cve-tag cve-${c.severity}">${c.id}</span>`
+        ).join('');
+        const zd = ml.zero_day_flag ? '<span class="cve-tag cve-Zero">⚠ ZERO-DAY</span>' : '';
+        const cardClass = ml.ml_risk === 'Critical' ? 'threat' : ml.ml_risk === 'Medium' ? 'medium' : '';
+
+        list.innerHTML += `
+            <div class="port-card ${cardClass}">
+                <div class="port-num">${p.port}</div>
+                <div class="port-info">
+                    <strong>${p.service}</strong>
+                    <span>${ml.ml_risk || 'UNKNOWN'} RISK</span>
+                </div>
+                <div class="port-banner">${p.banner || '[ NO BANNER ]'}</div>
+                <div class="port-tags">${cves}${zd}</div>
+            </div>`;
+    });
+
     if (data.ai_analysis) {
         const ai = data.ai_analysis;
         document.getElementById('aiPanel').style.display = 'block';
         document.getElementById('aiGrid').innerHTML = `
-            <div class="ai-block ai-summary-full">
-                <h4>📋 Threat Summary</h4>
+            <div class="ai-block full">
+                <div class="ai-block-label">Threat Summary</div>
                 <p>${ai.threat_summary || '—'}</p>
             </div>
             <div class="ai-block">
-                <h4>🚨 Critical Findings</h4>
-                <ul>${(ai.critical_findings || []).map(f => `<li>${f}</li>`).join('')}</ul>
+                <div class="ai-block-label">Critical Findings</div>
+                <ul>${(ai.critical_findings||[]).map(f=>`<li>${f}</li>`).join('')}</ul>
             </div>
             <div class="ai-block">
-                <h4>⚔️ Attack Vectors</h4>
-                <ul>${(ai.attack_vectors || []).map(a => `<li>${a}</li>`).join('')}</ul>
+                <div class="ai-block-label">Attack Vectors</div>
+                <ul>${(ai.attack_vectors||[]).map(a=>`<li>${a}</li>`).join('')}</ul>
             </div>
-            <div class="ai-block ai-summary-full">
-                <h4>🛡️ Recommendations</h4>
-                <ul>${(ai.recommendations || []).map(r => `<li>${r}</li>`).join('')}</ul>
+            <div class="ai-block full">
+                <div class="ai-block-label">Recommendations</div>
+                <ul>${(ai.recommendations||[]).map(r=>`<li>${r}</li>`).join('')}</ul>
             </div>`;
-        document.getElementById('chatPanel').style.display = 'block';
     }
+}
 
-    // Reload history table only
-    fetch('/api/scans')
-        .then(r => r.json())
-        .then(scans => {
-            const tbody = document.querySelector('table tbody');
-            tbody.innerHTML = scans.map(s => `
-                <tr>
-                    <td>${s.id}</td>
-                    <td>${s.hostname}</td>
-                    <td>${s.ip}</td>
-                    <td>${s.profile}</td>
-                    <td>${s.open_count}</td>
-                    <td><span class="risk-badge risk-${s.risk_score}">${s.risk_score}</span></td>
-                    <td>${s.duration}s</td>
-                    <td>${s.scan_time}</td>
-                </tr>`).join('');
-        });
+async function refreshHistory() {
+    const res = await fetch('/api/scans');
+    const scans = await res.json();
+    document.getElementById('historyBody').innerHTML = scans.length ? scans.map(s => `
+        <tr>
+            <td>${s.id}</td>
+            <td class="host">${s.hostname}</td>
+            <td class="ip">${s.ip}</td>
+            <td>${s.profile}</td>
+            <td>${s.open_count}</td>
+            <td><span class="risk-badge risk-${s.risk_score}">${s.risk_score}</span></td>
+            <td>${s.duration}s</td>
+            <td>${s.scan_time}</td>
+        </tr>`).join('') :
+        '<tr class="empty-row"><td colspan="8">[ NO SCAN RECORDS FOUND ]</td></tr>';
+}
+
+// ── AI CHAT ──
+function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+    if (chatOpen) document.getElementById('chatNotif').classList.remove('visible');
 }
 
 async function sendChat() {
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
-    if (!msg || !currentScanResult) return;
-
+    if (!msg) return;
+    if (!currentScan) {
+        addMsg('ai', 'Please run a scan first before asking questions.');
+        return;
+    }
     input.value = '';
-    addChatMsg('user', msg);
-    addChatMsg('ai', '<div class="spinner"></div>');
+    addMsg('user', msg);
+    const loadId = addMsg('ai', '<div class="spinner"></div>');
 
     try {
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: msg,
-                scan_id: currentScanResult.scan_id,
-                chat_history: chatHistory
-            })
+            body: JSON.stringify({ message: msg, scan_id: currentScan.scan_id, chat_history: chatHistory })
         });
         const data = await res.json();
-        const messages = document.getElementById('chatMessages');
-        messages.lastChild.remove();
-        addChatMsg('ai', data.reply);
+        document.getElementById(loadId).querySelector('.msg-text').textContent = data.reply;
         chatHistory.push({ role: 'user', content: msg });
         chatHistory.push({ role: 'assistant', content: data.reply });
-    } catch (err) {
-        addChatMsg('ai', 'Error: ' + err.message);
+    } catch(e) {
+        document.getElementById(loadId).querySelector('.msg-text').textContent = 'Error: ' + e.message;
     }
 }
 
-function addChatMsg(role, text) {
-    const messages = document.getElementById('chatMessages');
+function addMsg(role, text) {
+    const id = 'msg-' + Date.now();
     const div = document.createElement('div');
-    div.className = `chat-msg ${role}`;
+    div.className = 'chat-msg ' + role;
+    div.id = id;
     div.innerHTML = `
-        <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
-        <div class="text">${text}</div>`;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-}
-
-function resetScanBtn() {
-    const btn = document.getElementById('scanBtn');
-    btn.disabled = false;
-    btn.innerHTML = '🚀 Start Scan';
+        <div class="msg-avatar">${role === 'user' ? '👤' : '🤖'}</div>
+        <div class="msg-text">${text}</div>`;
+    const container = document.getElementById('chatMessages');
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return id;
 }
 </script>
 </body>
